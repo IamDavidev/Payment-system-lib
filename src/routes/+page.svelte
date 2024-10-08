@@ -1,7 +1,24 @@
-<script type="ts">
+<script lang="ts">
 	import { getPayments } from '$lib/services/get-payments';
 
 	const payments = getPayments();
+
+	function pay(id: string) {
+		console.log('Before payments', payments);
+		const payment = payments.find((payment) => payment.id === id);
+		if (payment) {
+			payment.amountPaid += payment.amountToPay;
+			payment.amountToPay = 0;
+			payment.nextPaymentDate = new Date(
+				new Date(payment.nextPaymentDate).setMonth(new Date(payment.nextPaymentDate).getMonth() + 1)
+			);
+		}
+		console.log('After payments', payments);
+	}
+
+	function parsePaymentDate(date: Date) {
+		return new Date(date).toLocaleDateString();
+	}
 </script>
 
 <div class="flex flex-col justify-center items-center gap-8">
@@ -21,15 +38,22 @@
 	</div>
 	<section class="flex flex-col gap-8">
 		{#each payments as payment}
-			<article class="flex flex-row gap-4 border border-white border-radius px-8 py-2 rounded-2xl">
+			<article
+				class="flex flex-row gap-4 border border-white border-radius px-8 py-2 rounded-2xl items-center"
+			>
 				<h2>{payment.client}</h2>
 				<span>
-					{payment.amountToPay}{"/"}
+					{payment.amountToPay}{'/'}
 					{payment.amountPaid}
 				</span>
-
-				<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-					Edit
+				<span>
+					{parsePaymentDate(payment.nextPaymentDate)}
+				</span>
+				<button
+					class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+					on:click={() => pay(payment.id)}
+				>
+					Pay
 				</button>
 			</article>
 		{/each}
